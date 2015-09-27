@@ -34,7 +34,6 @@ bool ModuleSceneIntro::CleanUp()
 // Update: draw background
 update_status ModuleSceneIntro::Update()
 {
-	
 
 	return UPDATE_CONTINUE;
 }
