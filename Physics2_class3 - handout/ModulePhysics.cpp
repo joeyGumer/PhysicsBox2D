@@ -16,6 +16,7 @@ ModulePhysics::ModulePhysics(Application* app, bool start_enabled) : Module(app,
 {
 	world = NULL;
 	debug = true;
+	
 }
 
 // Destructor
@@ -28,6 +29,8 @@ bool ModulePhysics::Start()
 	LOG("Creating Physics 2D environment");
 
 	world = new b2World(b2Vec2(GRAVITY_X, -GRAVITY_Y));
+	//don't know why this works but not with (*this)
+	world->SetContactListener(App->physics);
 	// TODO 3: You need to make ModulePhysics class a contact listener
 
 	// big static circle as "ground" in the middle of the screen
@@ -259,19 +262,50 @@ bool PhysBody::Contains(int x, int y) const
 {
 	// TODO 1: Write the code to return true in case the point
 	// is inside ANY of the shapes contained by this body
+	bool ret = false;
+	b2Vec2 vec(PIXEL_TO_METERS(x), PIXEL_TO_METERS(y));
 
-	return false;
+	for (b2Fixture* f = body->GetFixtureList(); f; f = f->GetNext())
+	{
+		ret = f->GetShape()->TestPoint(body->GetTransform(), vec);
+	}
+	
+	return ret;
 }
 
 int PhysBody::RayCast(int x1, int y1, int x2, int y2, float& normal_x, float& normal_y) const
 {
 	// TODO 2: Write code to test a ray cast between both points provided. If not hit return -1
 	// if hit, fill normal_x and normal_y and return the distance between x1,y1 and it's colliding point
-	int ret = -1;
+	int hit = -1;
+	int distance = -1;
 
-	return ret;
+	b2Vec2 p1(PIXEL_TO_METERS(x1), PIXEL_TO_METERS(y1));
+	b2Vec2 p2(PIXEL_TO_METERS(x2), PIXEL_TO_METERS(y2));
+	b2Vec2 normal(normal_x, normal_y);
+	float maxFraction = 1.0f;
+	b2RayCastInput input = { p1, p2, maxFraction };
+	b2RayCastOutput output;
+
+	b2Fixture* f = body->GetFixtureList();
+	for (int i = 0; f; f = f->GetNext(), i++)
+	{
+		hit = f->GetShape()->RayCast(&output, input, body->GetTransform(), i);
+	}
+
+	if (hit)
+	{
+		b2Vec2 dis = input.p1 + output.fraction*(p2 - p1);
+		distance = METERS_TO_PIXELS(dis.LengthSquared());
+	}
+	//ask ric why we have to return an integer, because the distance won't be precise in pixels
+	return distance;
 }
 
 // TODO 3
-
+void ModulePhysics::BeginContact(b2Contact* contact)
+{
+	//omg it works mother of yisus
+	LOG("Collision!!!");
+}
 // TODO 7: Call the listeners that are not NULL
