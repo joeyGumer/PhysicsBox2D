@@ -14,11 +14,28 @@
 class b2World;
 class b2Body;
 
+
 // TODO 6: Create a small class that keeps a pointer to tghe b2Body
 // and has a method to request the position
 // then write the implementation in the .cpp
 // Then make your circle creation function to return a pointer to that class
+class PhysBody
+{
+public:
 
+	PhysBody() : body(NULL)
+	{}
+
+	void GetPosition(int &x, int &y) const;
+	float GetRotation()const;
+
+
+public:
+
+	b2Body* body;
+	int width;
+	int height;
+};
 
 class ModulePhysics : public Module
 {
@@ -32,13 +49,14 @@ public:
 	bool CleanUp();
 
 	// TODO 4: Move body creation to 3 functions to create circles, rectangles and chains
-	//creation tools
-	bool CreateCircle(int x, int y, int radius);
-	bool CreateRectangle(int x, int y, int w, int h);
-	bool CreateRick(int x, int y);
+	//creation to
+	PhysBody* CreateCircle(int x, int y, int radius, int type);
+	PhysBody* CreateRectangle(int x, int y, int w, int h, int type);
+	PhysBody* CreateRick(int x, int y, int type);
 
 private:
 
 	bool debug;
 	b2World* world;
+	
 };

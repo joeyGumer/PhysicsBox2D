@@ -1,4 +1,5 @@
 #include "Globals.h"
+#include "p2Defs.h"
 #include "Application.h"
 #include "ModuleRender.h"
 #include "ModuleSceneIntro.h"
@@ -22,9 +23,9 @@ bool ModuleSceneIntro::Start()
 
 	App->renderer->camera.x = App->renderer->camera.y = 0;
 
-	circle = App->textures->Load("pinball/wheel.png"); 
-	box = App->textures->Load("pinball/crate.png");
-	rick = App->textures->Load("pinball/rick_head.png");
+	circle = App->textures->Load("game/pinball/wheel.png"); 
+	box = App->textures->Load("game/pinball/crate.png");
+	rick = App->textures->Load("game/pinball/rick_head.png");
 
 	return ret;
 }
@@ -34,6 +35,30 @@ bool ModuleSceneIntro::CleanUp()
 {
 	LOG("Unloading Intro scene");
 
+	p2List_item<PhysBody*>* c = circles.getFirst();
+	while (c != NULL)
+	{
+		RELEASE(c->data)
+			c = c->next;
+	}
+	circles.clear();
+	
+	c = boxes.getFirst();
+	while (c != NULL)
+	{
+		RELEASE(c->data)
+			c = c->next;
+	}
+	boxes.clear();
+
+	c = ricks.getFirst();
+	while (c != NULL)
+	{
+		RELEASE(c->data)
+			c = c->next;
+	}
+	ricks.clear();
+
 	return true;
 }
 
@@ -41,25 +66,55 @@ bool ModuleSceneIntro::CleanUp()
 update_status ModuleSceneIntro::Update()
 {
 	// TODO 5: Move all creation of bodies on 1,2,3 key press here in the scene
-	if (App->input->GetKey(SDL_SCANCODE_1) == KEY_REPEAT)
+	if (App->input->GetKey(SDL_SCANCODE_1) == KEY_DOWN)
 	{
-		App->physics->CreateCircle(App->input->GetMouseX(), App->input->GetMouseX(), 50);
+		circles.add(App->physics->CreateCircle(App->input->GetMouseX(), App->input->GetMouseX(), 25, 2));	
 	}
 
-	if (App->input->GetKey(SDL_SCANCODE_2) == KEY_REPEAT)
+	if (App->input->GetKey(SDL_SCANCODE_2) == KEY_DOWN)
 	{
-		
-
-		App->physics->CreateRectangle(App->input->GetMouseX(), App->input->GetMouseX(), 50, 25);
-		
+		boxes.add(App->physics->CreateRectangle(App->input->GetMouseX(), App->input->GetMouseX(), 50, 25, 2));
 	}
 
-	if (App->input->GetKey(SDL_SCANCODE_3) == KEY_REPEAT)
+	if (App->input->GetKey(SDL_SCANCODE_3) == KEY_DOWN)
 	{
-		App->physics->CreateRick(App->input->GetMouseX(), App->input->GetMouseX());
-
+		ricks.add(App->physics->CreateRick(App->input->GetMouseX(), App->input->GetMouseX(), 2));
 	}
 	// TODO 7: Draw all the circles using "circle" texture
+
+	p2List_item<PhysBody*>* c = circles.getFirst();
+	while (c != NULL)
+	{
+		int x, y;
+		double angle = c->data->GetRotation();
+		c->data->GetPosition(x, y);
+		App->renderer->Blit(circle, x, y, NULL, 1.0f, angle);
+
+		c = c->next;
+	}
+
+	c = boxes.getFirst();
+	while (c != NULL)
+	{
+		int x, y;
+		double angle = c->data->GetRotation();
+		c->data->GetPosition(x, y);
+		App->renderer->Blit(box, x, y, NULL, 1.0f, angle);
+
+		c = c->next;
+	}
+
+	c = ricks.getFirst();
+	while (c != NULL)
+	{
+		int x, y;
+		double angle = c->data->GetRotation();
+		c->data->GetPosition(x, y);
+		App->renderer->Blit(rick, x, y, NULL, 1.0f, angle);
+
+		c = c->next;
+	}
+
 
 	return UPDATE_CONTINUE;
 }

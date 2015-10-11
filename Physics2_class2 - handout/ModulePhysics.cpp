@@ -158,48 +158,51 @@ bool ModulePhysics::CleanUp()
 	return true; 
 }
 
-bool ModulePhysics::CreateCircle(int x, int y, int r)
+PhysBody* ModulePhysics::CreateCircle(int x, int y, int r, int type)
 {
 	b2BodyDef body;
-	body.type = b2_dynamicBody;
-	float radius = PIXEL_TO_METERS(25);
+	body.type = b2BodyType(type);
 	body.position.Set(PIXEL_TO_METERS(App->input->GetMouseX()), PIXEL_TO_METERS(App->input->GetMouseY()));
 
 	b2Body* b = world->CreateBody(&body);
 
 	b2CircleShape shape;
-	shape.m_radius = radius;
+	shape.m_radius = PIXEL_TO_METERS(r);
 	b2FixtureDef fixture;
 	fixture.shape = &shape;
-
 	b->CreateFixture(&fixture);
 
-	return true;
+	PhysBody* pbody = new PhysBody();
+	pbody->body = b;
+	pbody->width = r;
+	pbody->height = r;
+	
+	return pbody;
 }
 
-bool ModulePhysics::CreateRectangle(int x, int y, int w, int h)
+PhysBody* ModulePhysics::CreateRectangle(int x, int y, int w, int h, int type)
 {
-	
-	int hx = 50;
-	int hy = 25;
-
 	b2BodyDef body;
-	body.type = b2_dynamicBody;
+	body.type = b2BodyType(type);
 	body.position.Set(PIXEL_TO_METERS(App->input->GetMouseX()), PIXEL_TO_METERS(App->input->GetMouseY()));
 
 	b2Body* b = world->CreateBody(&body);
 
-	b2PolygonShape dynamicBox;
-	dynamicBox.SetAsBox(PIXEL_TO_METERS(hx), PIXEL_TO_METERS(hy));
-
+	b2PolygonShape box;
+	box.SetAsBox(PIXEL_TO_METERS(w), PIXEL_TO_METERS(h));
 	b2FixtureDef fixture;
-	fixture.shape = &dynamicBox;
+	fixture.shape = &box;
 	fixture.density = 1;
 	b->CreateFixture(&fixture); 
 
-	return true;
+	PhysBody* pbody = new PhysBody;
+	pbody->body = b;
+	pbody->width = w;
+	pbody->height = h;
+
+	return pbody;
 }
-bool ModulePhysics::CreateRick(int x, int y)
+PhysBody* ModulePhysics::CreateRick(int x, int y, int type)
 {
 	int rick_head[66] = {
 		43, 40,
@@ -235,7 +238,6 @@ bool ModulePhysics::CreateRick(int x, int y)
 		0, 76,
 		29, 63,
 		13, 35,
-
 	};
 
 	b2Vec2 chain[33];
@@ -247,18 +249,38 @@ bool ModulePhysics::CreateRick(int x, int y)
 	}
 
 	b2BodyDef body;
-	body.type = b2_dynamicBody;
+	body.type = b2BodyType(type);
 	body.position.Set(PIXEL_TO_METERS(App->input->GetMouseX()), PIXEL_TO_METERS(App->input->GetMouseY()));
 
 	b2Body* b = world->CreateBody(&body);
 
-	b2ChainShape dynamicShape;
-	dynamicShape.CreateLoop(chain, 33);
+	b2ChainShape shape;
+	shape.CreateLoop(chain, 33);
 
 	b2FixtureDef fixture;
-	fixture.shape = &dynamicShape;
+	fixture.shape = &shape;
 	fixture.density = 1;
 	b->CreateFixture(&fixture);
-	
-	return true;
+
+	PhysBody* pbody = new PhysBody;
+	pbody->body = b;
+	pbody->width = 0;
+	pbody->height = 0;
+
+	return pbody;
+}
+
+/*
+//PhysBody functions
+*/
+void PhysBody::GetPosition(int &x, int &y)const
+{
+	b2Vec2 pos = body->GetPosition();
+	x = METERS_TO_PIXELS(pos.x) - (width);
+	y = METERS_TO_PIXELS(pos.y) - (height);
+}
+
+float PhysBody::GetRotation() const
+{
+	return RADTODEG * body->GetAngle();
 }
