@@ -4,6 +4,7 @@
 #include "ModuleRender.h"
 #include "ModulePhysics.h"
 #include "p2Point.h"
+#include "p2Defs.h"
 #include "math.h"
 
 #ifdef _DEBUG
@@ -30,7 +31,7 @@ bool ModulePhysics::Start()
 
 	world = new b2World(b2Vec2(GRAVITY_X, -GRAVITY_Y));
 	//don't know why this works but not with (*this)
-	world->SetContactListener(App->physics);
+	world->SetContactListener(this);
 	// TODO 3: You need to make ModulePhysics class a contact listener
 
 	// big static circle as "ground" in the middle of the screen
@@ -90,6 +91,9 @@ PhysBody* ModulePhysics::CreateCircle(int x, int y, int radius)
 	pbody->body = b;
 	pbody->width = pbody->height = radius;
 
+	b->SetUserData(pbody);
+	bodies.add(pbody);
+
 	return pbody;
 }
 
@@ -113,6 +117,9 @@ PhysBody* ModulePhysics::CreateRectangle(int x, int y, int width, int height)
 	pbody->body = b;
 	pbody->width = width * 0.5f;
 	pbody->height = height * 0.5f;
+
+	b->SetUserData(pbody);
+	bodies.add(pbody);
 
 	return pbody;
 }
@@ -146,6 +153,9 @@ PhysBody* ModulePhysics::CreateChain(int x, int y, int* points, int size)
 	PhysBody* pbody = new PhysBody();
 	pbody->body = b;
 	pbody->width = pbody->height = 0;
+
+	b->SetUserData(pbody);
+	bodies.add(pbody);
 
 	return pbody;
 }
@@ -240,6 +250,14 @@ bool ModulePhysics::CleanUp()
 {
 	LOG("Destroying physics world");
 
+	p2List_item<PhysBody*>* pbody = bodies.getFirst();
+	while (pbody)
+	{
+		RELEASE(pbody->data);
+		pbody = pbody->next;
+	}
+	bodies.clear();
+
 	// Delete the whole physics world!
 	delete world;
 
@@ -284,6 +302,7 @@ int PhysBody::RayCast(int x1, int y1, int x2, int y2, float& normal_x, float& no
 	b2Vec2 p2(PIXEL_TO_METERS(x2), PIXEL_TO_METERS(y2));
 	b2Vec2 normal(normal_x, normal_y);
 	float maxFraction = 1.0f;
+
 	b2RayCastInput input = { p1, p2, maxFraction };
 	b2RayCastOutput output;
 
@@ -306,6 +325,18 @@ int PhysBody::RayCast(int x1, int y1, int x2, int y2, float& normal_x, float& no
 void ModulePhysics::BeginContact(b2Contact* contact)
 {
 	//omg it works mother of yisus
+	PhysBody* pbodyA = (PhysBody*) contact->GetFixtureA()->GetBody()->GetUserData();
+	PhysBody* pbodyB = (PhysBody*) contact->GetFixtureB()->GetBody()->GetUserData();
+
+	if (pbodyA && pbodyA->listener != NULL)
+	{
+		pbodyA->listener->OnCollision(pbodyA, pbodyB);
+	}
+	if (pbodyB && pbodyB->listener != NULL)
+	{
+		pbodyB->listener->OnCollision(pbodyB, pbodyA);
+	}
+
 	LOG("Collision!!!");
 }
 // TODO 7: Call the listeners that are not NULL

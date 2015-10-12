@@ -16,7 +16,7 @@
 class PhysBody
 {
 public:
-	PhysBody() : body(NULL)
+	PhysBody() : body(NULL), listener(NULL)
 	{}
 
 	void GetPosition(int& x, int &y) const;
@@ -28,6 +28,7 @@ public:
 	int width, height;
 	b2Body* body;
 	// TODO 6: Add a pointer to a module that might want to listen to a collision from this body
+	Module* listener;
 };
 
 // Module --------------------------------------
@@ -53,6 +54,7 @@ public:
 
 private:
 
-	bool debug;
-	b2World* world;
+	bool				debug;
+	b2World*			world;
+	p2List<PhysBody*>	bodies;
 };

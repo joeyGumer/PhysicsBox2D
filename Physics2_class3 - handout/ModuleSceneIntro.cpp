@@ -40,6 +40,10 @@ bool ModuleSceneIntro::CleanUp()
 {
 	LOG("Unloading Intro scene");
 
+	circles.clear();
+	boxes.clear();
+	ricks.clear();
+
 	return true;
 }
 
@@ -55,7 +59,11 @@ update_status ModuleSceneIntro::Update()
 
 	if(App->input->GetKey(SDL_SCANCODE_1) == KEY_DOWN)
 	{
-		circles.add(App->physics->CreateCircle(App->input->GetMouseX(), App->input->GetMouseY(), 25));
+		
+		PhysBody* pbody = App->physics->CreateCircle(App->input->GetMouseX(), App->input->GetMouseY(), 25);
+		//ask ric why if i try to asign the listener at the CreateCircle method, it doesn't let me because it's a moduleSceneIntro* not a module* but instead, here it works
+		pbody->listener = (this); 
+		circles.add(pbody);
 		// TODO 8: Make sure to add yourself as collision callback to the circle you creates
 	}
 
@@ -169,3 +177,7 @@ update_status ModuleSceneIntro::Update()
 }
 
 // TODO 8: Now just define collision callback for the circle and play bonus_fx audio
+void ModuleSceneIntro::OnCollision(PhysBody* pbodyA, PhysBody* pbodyB)
+{
+	App->audio->PlayFx(bonus_fx);
+}
