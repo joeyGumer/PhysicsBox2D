@@ -271,10 +271,10 @@ update_status ModulePhysics::PostUpdate()
 			// TODO 1: If mouse button 1 is pressed ...
 			// App->input->GetMouseButton(SDL_BUTTON_LEFT) == KEY_DOWN
 			// test if the current body contains mouse position
-			if (App->input->GetMouseButton(SDL_BUTTON_LEFT) == KEY_DOWN && found == false)
+			if (App->input->GetMouseButton(SDL_BUTTON_LEFT) == KEY_DOWN && found == false && (PhysBody*)b->GetUserData())
 			{
 				
-				if ((PhysBody*)b->GetUserData() && ((PhysBody*)b->GetUserData())->Contains(App->input->GetMouseX(), App->input->GetMouseY()))
+				if (((PhysBody*)b->GetUserData())->Contains(App->input->GetMouseX(), App->input->GetMouseY()))
 				{ 
 					clicked_body = (PhysBody*)b->GetUserData(); // (PhysBody*)b->GetUserData();
 					found = true;
@@ -312,10 +312,8 @@ update_status ModulePhysics::PostUpdate()
 		
 		mouse_joint->SetTarget(mouse_position);
 
-		App->renderer->DrawLine(METERS_TO_PIXELS(init_position.x),
-								METERS_TO_PIXELS(init_position.y), 
-								METERS_TO_PIXELS(mouse_position.x), 
-								METERS_TO_PIXELS(mouse_position.y), 
+		App->renderer->DrawLine(METERS_TO_PIXELS(init_position.x),METERS_TO_PIXELS(init_position.y), 
+								METERS_TO_PIXELS(mouse_position.x), METERS_TO_PIXELS(mouse_position.y), 
 								255, 0, 0);
 	}
 	// TODO 4: If the player releases the mouse button, destroy the joint
@@ -413,4 +411,5 @@ void ModulePhysics::BeginContact(b2Contact* contact)
 
 	if(physB && physB->listener != NULL)
 		physB->listener->OnCollision(physB, physA);
+
 }
